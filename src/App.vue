@@ -41,7 +41,7 @@ export default {
         
         return view
       })
-      console.log('view_list:',view_list)
+      console.log('all_data:',data)
       this.view_list = view_list
     })
   }

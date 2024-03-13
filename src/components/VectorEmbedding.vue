@@ -135,6 +135,6 @@ export default {
 
     .highlight_scatter{
         stroke: black;
-        stroke-width: 3px;
+        stroke-width: 10px;
     }
 </style>
