@@ -1,5 +1,8 @@
 <template>
   <div id="app">
+    <div class="controller-container">
+      <el-checkbox v-model="show_arrow" @change="handleShowArrowChange">显示方向</el-checkbox>
+    </div>
     <div class="canvas-container">
       <VectorEmbedding ref="vector-embedding" class="vector-embedding" @emitHighlight="handleEmitHighlight" v-for="view in view_list" :key="view['title']" :data="view"></VectorEmbedding>
     </div>
@@ -17,7 +20,8 @@ export default {
   },
   data(){
     return {
-      'view_list':[]
+      'view_list':[],
+      'show_arrow':false
     }
   },
   methods:{
@@ -25,6 +29,18 @@ export default {
         for(let comp of this.$refs['vector-embedding']){
             comp.receiveOnHighlight(id)
         }
+    },
+    handleShowArrowChange(){
+      if(this.show_arrow){
+        for(let comp of this.$refs['vector-embedding']){
+            comp.showArrow()
+        }
+      }
+      else{
+        for(let comp of this.$refs['vector-embedding']){
+            comp.hideArrow()
+        }
+      }
     }
   },
   mounted(){
