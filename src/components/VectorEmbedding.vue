@@ -28,7 +28,14 @@ export default {
                 'right':20,
                 'bottom':20,
             },
+            dir_length:20,
+            arrow_size:4,
+
+
+
+            //id
             nanoid:0
+
         }
     },
 
@@ -58,7 +65,6 @@ export default {
                 .attr('y',30)
                 .style('font-size',20)
 
-            //scatter
             //scale
             let minX = Math.min(...points.map(d=>d.x));
             let maxX = Math.max(...points.map(d=>d.x));
@@ -73,14 +79,10 @@ export default {
                 .domain([minY, maxY])
                 .range([self.padding.top, self.padding.top + height]);
 
-            const scatter_g =  
-                    scatter.selectAll('*')
-                   .data(points)
-                   .join('g')
-                   .classed('scatter_g',true)
-
-            scatter_g
-                .append('circle')
+            //scatter
+            scatter.selectAll('*')
+                .data(points)
+                .join('circle')
                 .attr('r',2)
                 .attr('cx',d=>posXScale(d.x))
                 .attr('cy',d=>posYScale(d.y))
@@ -95,26 +97,29 @@ export default {
                 })
                 .on('mouseleave',(e,d)=>{
                 })
+                .on('click',(e,d)=>{
+                    
+                })
             
 
-            const dir_length = 10;
-            const arrow_size = 4;
 
-
+            //velocity
 
             svg.append('defs')
                .append('marker')
                .attr("id",`velocity_arrow-${self.nanoid}`)
-               .attr("markerHeight",arrow_size)
-               .attr("markerWidth",arrow_size)
-               .attr("refX",arrow_size)
-               .attr("refY",0.5 * arrow_size)
+               .attr("markerHeight",self.arrow_size)
+               .attr("markerWidth",self.arrow_size)
+               .attr("refX",self.arrow_size)
+               .attr("refY",0.5 * self.arrow_size)
                .attr("orient","auto")
                .append("path")
-               .attr("d",`M 0 0 L ${arrow_size} ${0.5 * arrow_size} L 0 ${arrow_size} z`)
+               .attr("d",`M 0 0 L ${self.arrow_size} ${0.5 * self.arrow_size} L 0 ${self.arrow_size} z`)
 
-            scatter_g
-                .append('line')
+            velocity
+                .selectAll('*')
+                .data(points)
+                .join('line')
                 .attr('x1',d=>posXScale(d.x))
                 .attr('y1',d=>posYScale(d.y))
                 .attr('x2',d=>{
@@ -122,7 +127,7 @@ export default {
                     let delta_y = posXScale(d.y + d.velocity_y) - posYScale(d.y)
 
                     if(d.velocity_x != 0 || d.velocity_y != 0)
-                        return posXScale(d.x) + delta_x / (Math.sqrt(delta_x * delta_x + delta_y * delta_y)) * dir_length
+                        return posXScale(d.x) + delta_x / (Math.sqrt(delta_x * delta_x + delta_y * delta_y)) * self.dir_length
                     else
                         return posXScale(d.x)
                 })
@@ -130,7 +135,7 @@ export default {
                     let delta_x = posXScale(d.x + d.velocity_x) - posXScale(d.x)
                     let delta_y = posYScale(d.y + d.velocity_y) - posYScale(d.y) 
                     if(d.velocity_x != 0 || d.velocity_y != 0)
-                        return posYScale(d.y) + delta_y / (Math.sqrt(delta_x * delta_x + delta_y * delta_y)) * dir_length
+                        return posYScale(d.y) + delta_y / (Math.sqrt(delta_x * delta_x + delta_y * delta_y)) * self.dir_length
                     else
                         return posYScale(d.y)
                 })
@@ -159,14 +164,10 @@ export default {
                 .each(function(d,i){
                     if(d.id == id){
                         d3.select(this).classed('highlight_scatter',true)
+                        d3.select(this).raise()
+
                     } 
                 })
-            svg.selectAll('.scatter_g')
-                .each(function(d,i){
-                    if(d.id == id){
-                        d3.select(this).raise()
-                    } 
-                })               
         },
 
         showArrow(){
