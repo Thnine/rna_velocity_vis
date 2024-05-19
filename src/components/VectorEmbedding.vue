@@ -1,5 +1,4 @@
 <template>
-
     <div>
         <div class="vector-embedding-container">
             <svg class="vector-embedding-canvas" ref="vector-embedding-canvas">
@@ -31,10 +30,12 @@ export default {
             dir_length:20,
             arrow_size:4,
 
-
-
             //id
-            nanoid:0
+            nanoid:0,
+
+            //其他数据项
+            posXScale:null,
+            posYScale:null,
 
         }
     },
@@ -78,6 +79,8 @@ export default {
                 .scaleLinear()
                 .domain([minY, maxY])
                 .range([self.padding.top, self.padding.top + height]);
+            self.posXScale = posXScale
+            self.posYScale = posYScale
 
             //scatter
             scatter.selectAll('*')
@@ -94,17 +97,17 @@ export default {
                 .classed('highlight_scatter',false)
                 .on('mouseover',(e,d)=>{
                     self.$emit('emitHighlight',d.id)
+                    self.$emit('emitShowNeighbors',d.id)
                 })
                 .on('mouseleave',(e,d)=>{
                 })
                 .on('click',(e,d)=>{
-                    
+
                 })
             
 
 
             //velocity
-
             svg.append('defs')
                .append('marker')
                .attr("id",`velocity_arrow-${self.nanoid}`)
@@ -149,10 +152,10 @@ export default {
                 })
                 .classed('velocity-arrow',true)
                 .style('display','none')
-                
-
-
             
+            //neighbor links
+
+                
         },
 
         receiveOnHighlight(id){
@@ -165,9 +168,47 @@ export default {
                     if(d.id == id){
                         d3.select(this).classed('highlight_scatter',true)
                         d3.select(this).raise()
-
                     } 
                 })
+        },
+
+        receiveOnShowNeighbors(id){
+            this.drawNeighborLinks(id)
+        },
+
+        drawNeighborLinks(id){
+            /**
+             * 画表示neighbor的links
+             */ 
+            const self = this;
+            const svg = d3.select(self.$refs['vector-embedding-canvas'])
+            //clear links
+            svg.selectAll('.neighbor-links-plot').remove()
+            //prepare pos
+            let LUP = {}//id->index的速查表
+            for(let i = 0;i < self.data.points.length;i++){
+                LUP[self.data.points[i]['id']] = i;
+            }
+            let base_pos = [self.posXScale(self.data.points[LUP[id]]['x']),self.posYScale(self.data.points[LUP[id]]['y'])]
+            let neighbor_pos = self.data.neighbors[LUP[id]].map(v=>{
+                return [
+                    self.posXScale(self.data.points[LUP[v]]['x']),
+                    self.posYScale(self.data.points[LUP[v]]['y'])
+                ]
+            })
+            //draw links
+            const neighbor_links_plot = svg.append('g').attr("class","neighbor-links-plot")
+            neighbor_links_plot.selectAll('*')
+                                .data(neighbor_pos)
+                                .join('line')
+                                .attr("x1",base_pos[0])
+                                .attr("y1",base_pos[1])
+                                .attr("x2",(d,i)=>neighbor_pos[i][0])
+                                .attr("y2",(d,i)=>neighbor_pos[i][1])
+                                .style('stroke','black')
+                                .style('stroke-width','0.5px')
+
+        
         },
 
         showArrow(){
@@ -176,12 +217,14 @@ export default {
             svg.selectAll('.velocity-arrow')
                 .style('display',null)
         },
+
         hideArrow(){
             const self = this;
             const svg = d3.select(self.$refs['vector-embedding-canvas'])
             svg.selectAll('.velocity-arrow')
                 .style('display','none')
         }
+
 
 
     },
@@ -207,6 +250,6 @@ export default {
 
     .highlight_scatter{
         stroke: black;
-        stroke-width: 10px;
+        stroke-width: 4px;
     }
 </style>

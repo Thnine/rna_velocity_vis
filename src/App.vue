@@ -2,9 +2,10 @@
   <div id="app">
     <div class="controller-container">
       <el-checkbox v-model="show_arrow" @change="handleShowArrowChange">显示方向</el-checkbox>
+      <el-checkbox v-model="show_arrow" @change="handleShowArrowChange">显示邻居</el-checkbox>
     </div>
     <div class="canvas-container">
-      <VectorEmbedding ref="vector-embedding" class="vector-embedding" @emitHighlight="handleEmitHighlight" v-for="view in view_list" :key="view['title']" :data="view"></VectorEmbedding>
+      <VectorEmbedding ref="vector-embedding" class="vector-embedding" @emitHighlight="handleEmitHighlight" @emitShowNeighbors="handleEmitShowNeighbors" v-for="view in view_list" :key="view['title']" :data="view"></VectorEmbedding>
     </div>
   </div>
 </template>
@@ -30,6 +31,12 @@ export default {
             comp.receiveOnHighlight(id)
         }
     },
+    handleEmitShowNeighbors(id){
+        for(let comp of this.$refs['vector-embedding']){
+            comp.receiveOnShowNeighbors(id)
+        }
+    },
+
     handleShowArrowChange(){
       if(this.show_arrow){
         for(let comp of this.$refs['vector-embedding']){
@@ -44,16 +51,24 @@ export default {
     }
   },
   mounted(){
-    d3.json('static/data.json').then(res=>{
+    d3.json('static/data(test_neighbors).json').then(res=>{
       let data = res;
       let view_list = data['views'].map(v=>{
         let view = JSON.parse(JSON.stringify(v));
         view['color_scheme'] = data['color_scheme'];
-        
         // attach id
         for(let i = 0;i < view['points'].length;i++){
           view['points'][i]['id'] = String(i)
         }
+        // transfer neighbor index to id
+        let id_neighbors = {}
+        for(let i = 0;i < data['neighbors'].length;i++){
+          let cur_id = view['points'][i]['id']
+          id_neighbors[cur_id] = data['neighbors'][i].map(v=>{
+            return view['points'][v]['id']
+          })
+        }
+        view['neighbors'] = id_neighbors
         
         return view
       })
