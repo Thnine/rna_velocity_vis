@@ -81,7 +81,7 @@ export default {
     }
   },
   mounted(){
-    d3.json('static/data(test_neighbors).json').then(res=>{
+    d3.json('static/data(test_neighbors2).json').then(res=>{
       let data = res;
       console.log('data:',data)
       let view_list = data['views'].map((v,view_index)=>{
