@@ -153,8 +153,6 @@ export default {
                 .classed('velocity-arrow',true)
                 .style('display','none')
             
-            //neighbor links
-
                 
         },
 
@@ -172,11 +170,11 @@ export default {
                 })
         },
 
-        receiveOnShowNeighbors(id){
-            this.drawNeighborLinks(id)
+        receiveOnShowNeighbors(id,type,neighbor_num){
+            this.drawNeighborLinks(id,type,neighbor_num)
         },
 
-        drawNeighborLinks(id){
+        drawNeighborLinks(id,type='tran',n_neighbors=2){
             /**
              * 画表示neighbor的links
              */ 
@@ -189,13 +187,29 @@ export default {
             for(let i = 0;i < self.data.points.length;i++){
                 LUP[self.data.points[i]['id']] = i;
             }
+
+            let neighbor_data = null;
+            if(type=='tran'){
+                neighbor_data = self.data['tran_neighbors']
+            }
+            else if(type=='velo'){
+                neighbor_data = self.data['velo_neighbors']
+            }
+            else if(type=='comp'){
+                neighbor_data = self.data['comp_neighbors']
+            }
+
             let base_pos = [self.posXScale(self.data.points[LUP[id]]['x']),self.posYScale(self.data.points[LUP[id]]['y'])]
-            let neighbor_pos = self.data.neighbors[LUP[id]].map(v=>{
-                return [
-                    self.posXScale(self.data.points[LUP[v]]['x']),
-                    self.posYScale(self.data.points[LUP[v]]['y'])
-                ]
-            })
+            let neighbor_pos = []
+            for(let i = 0;i < n_neighbors;i++){
+                if(i >= neighbor_data[id].length)
+                    break;
+                neighbor_pos.push([
+                    self.posXScale(self.data.points[LUP[neighbor_data[id][i]]]['x']),
+                    self.posYScale(self.data.points[LUP[neighbor_data[id][i]]]['y'])
+                ])
+            }
+
             //draw links
             const neighbor_links_plot = svg.append('g').attr("class","neighbor-links-plot")
             neighbor_links_plot.selectAll('*')
@@ -206,7 +220,7 @@ export default {
                                 .attr("x2",(d,i)=>neighbor_pos[i][0])
                                 .attr("y2",(d,i)=>neighbor_pos[i][1])
                                 .style('stroke','black')
-                                .style('stroke-width','0.5px')
+                                .style('stroke-width',1.5)
 
         
         },
